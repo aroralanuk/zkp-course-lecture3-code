@@ -48,9 +48,21 @@ template Sudoku(n) {
     // puzzle is the same, but a zero indicates a blank
     signal input puzzle[n][n];
 
-    component distinct[n];
+    component distinctCol[n];
+    component distinctRow[n];
+    component distinctSq[n];
     component inRange[n][n];
 
+
+    // check validility
+    for (var row_i = 0; row_i < n; row_i++) {
+        for (var col_i = 0; col_i < n; col_i++) {
+            inRange[row_i][col_i] = OneToNine();
+            inRange[row_i][col_i].in <== solution[row_i][col_i];
+        }
+    }
+
+    // check if matching the puzzle input
     for (var row_i = 0; row_i < n; row_i++) {
         for (var col_i = 0; col_i < n; col_i++) {
             // we could make this a component
@@ -58,14 +70,34 @@ template Sudoku(n) {
         }
     }
 
+    // check for columns
+    for (var col_i = 0; col_i < n; col_i++) {
+        distinctCol[col_i] = Distinct(n);
+        for (var row_i = 0; row_i < n; row_i++) {
+            distinctCol[col_i].in[row_i] <== solution[row_i][col_i];
+        }
+    }
+
+    // check for rows
+    for (var row_i = 0; row_i < n; row_i++) {
+        distinctRow[row_i] = Distinct(n);
+        for (var col_i = 0; col_i < n; col_i++) {
+            distinctRow[row_i].in[col_i] <== solution[row_i][col_i];
+        }
+    }
+
+    // check for squares
+    // | 0 | 1 | 2 |
+    // | 3 | 4 | 5 |
+    // | 6 | 7 | 8 | 
     for (var row_i = 0; row_i < n; row_i++) {
         for (var col_i = 0; col_i < n; col_i++) {
-            if (row_i == 0) {
-                distinct[col_i] = Distinct(n);
+            var index = ((row_i \ 3) * 3) + col_i \ 3;
+            if ((row_i % 3 == 0) && (col_i % 3 == 0)) {
+                distinctSq[index] = Distinct(n);
             }
-            inRange[row_i][col_i] = OneToNine();
-            inRange[row_i][col_i].in <== solution[row_i][col_i];
-            distinct[col_i].in[row_i] <== solution[row_i][col_i];
+            var position = ((row_i % 3) * 3) + (col_i % 3);
+            distinctSq[index].in[position] <== solution[row_i][col_i];
         }
     }
 }
